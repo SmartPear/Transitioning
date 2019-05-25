@@ -1,0 +1,9 @@
+{
+  "commitish" : "3.2.0",
+  "iOS" : [
+    {
+      "name" : "TZImagePickerController",
+      "hash" : "eb7e7573df80ff4c2eb3668119179a3885c5f0fd97c1f94fc9cc9fb241ee83dc"
+    }
+  ]
+}

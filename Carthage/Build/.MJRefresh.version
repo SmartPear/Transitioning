@@ -1,0 +1,9 @@
+{
+  "commitish" : "3.2.1",
+  "iOS" : [
+    {
+      "name" : "MJRefresh",
+      "hash" : "d2da60146342904c922e9c289a0da807e4601142bacc6230ad5a6a9e0fb20c96"
+    }
+  ]
+}
