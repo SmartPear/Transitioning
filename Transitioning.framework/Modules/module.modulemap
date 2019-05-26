@@ -1,0 +1,11 @@
+framework module Transitioning {
+  umbrella header "Transitioning.h"
+
+  export *
+  module * { export * }
+}
+
+module Transitioning.Swift {
+    header "Transitioning-Swift.h"
+    requires objc
+}
