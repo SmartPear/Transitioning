@@ -14,32 +14,23 @@ private var tintColorKey = "tintColor"
 
 @objc extension UIViewController{
     
-    @objc public  var barTintColor:UIColor{
-        
+    @objc public  var barTintColor:UIColor?{
         get {
-            if let color =  objc_getAssociatedObject(self, &barColorKey) as? UIColor{
+            if let  color =  objc_getAssociatedObject(self, &barColorKey) as? UIColor{
                 return color
             }
-            let color = UIColor.white
-            self.barTintColor = color
-            return color
+            return nil
         }
         set{
             let color = newValue
-            objc_setAssociatedObject(
-                self,
-                &barColorKey,
-                color,
-                .OBJC_ASSOCIATION_RETAIN_NONATOMIC
-            )
+            objc_setAssociatedObject(self,&barColorKey,color,.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             if let navi = self.navigationController?.navigationBar{
-                navi.barView?.backgroundColor = color
+                navi.barTintColor = color
             }
         }
     }
     
     @objc public var titleTextAttributes:[NSAttributedString.Key:Any]{
-        
         get {
             if let value =  objc_getAssociatedObject(self, &titleTextAttributesKey) as? [NSAttributedString.Key:Any]{
                 return value
@@ -49,13 +40,7 @@ private var tintColorKey = "tintColor"
             return attribute
         }
         set{
-            
-            objc_setAssociatedObject(
-                self,
-                &titleTextAttributesKey,
-                newValue,
-                .OBJC_ASSOCIATION_RETAIN_NONATOMIC
-            )
+            objc_setAssociatedObject(self,&titleTextAttributesKey,newValue,.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             if let navi = self.navigationController?.navigationBar{
                 navi.titleTextAttributes = newValue
             }
@@ -63,20 +48,20 @@ private var tintColorKey = "tintColor"
     }
     
     @objc public var tintColor:UIColor{
+        
         get {
             if let value =  objc_getAssociatedObject(self, &tintColorKey) as? UIColor{
                 return value
             }
             let color = UIColor.black
+            if let navi = self.navigationController?.navigationBar{
+                navi.tintColor = color
+            }
             return color
         }
+        
         set{
-            objc_setAssociatedObject(
-                self,
-                &tintColorKey,
-                newValue,
-                .OBJC_ASSOCIATION_RETAIN_NONATOMIC
-            )
+            objc_setAssociatedObject(self,&tintColorKey,newValue,.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             if let navi = self.navigationController?.navigationBar{
                 navi.tintColor = newValue
             }

@@ -10,8 +10,8 @@ import UIKit
 
 public class PushAnimation: NSObject {
     
-    @objc private var operation:UINavigationController.Operation = .none
-    @objc private var interaction:UIPercentDrivenInteractiveTransition?
+    @objc public var operation:UINavigationController.Operation = .none
+    @objc public var interaction:UIPercentDrivenInteractiveTransition?
     @objc weak var navigation:UINavigationController?
     
     @objc override public init() {
@@ -20,15 +20,12 @@ public class PushAnimation: NSObject {
     
     public func bindView(navigation:UINavigationController) {
         self.navigation = navigation
-        navigation.delegate = self
         setupGes()
     }
     
-    @objc public func removeBind() {
-        
+    @objc public func removeBind() {        
         navigation?.view.removeGestureRecognizer(ges)
         self.navigation = nil
-        navigation?.delegate = nil
     }
     
     private lazy var ges: UIScreenEdgePanGestureRecognizer = {
@@ -80,86 +77,54 @@ public class PushAnimation: NSObject {
     
 }
 
-extension PushAnimation:UINavigationControllerDelegate{
-    
-    @objc public func navigationController(_ navigationController: UINavigationController, interactionControllerFor animationController: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
-        return self.interaction
-    }
-    
-   @objc public func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationController.Operation, from fromVC: UIViewController, to toVC: UIViewController) ->
-        UIViewControllerAnimatedTransitioning? {
-            
-            self.operation = operation
-            return self
-    }
-    
-}
 
 extension PushAnimation:UIViewControllerAnimatedTransitioning{
     
-   @objc public func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
+    @objc public func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         return 0.25
     }
     
-   @objc public func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
-        if self.operation == .push{
-            print("push")
-            if let toview = transitionContext.view(forKey: UITransitionContextViewKey.to),let fromView = transitionContext.view(forKey: .from),let toControl = transitionContext.viewController(forKey: .to),let fromControl = transitionContext.viewController(forKey: .from){
-                if let navigationBar = toControl.navigationController?.navigationBar{
-                    transitionContext.containerView.addSubview(toview)
-                    toview.originX(toview.frame.size.width)
-                    UIView.animate(withDuration: self.transitionDuration(using: transitionContext), delay: 0, options: [.curveEaseOut], animations: {
-                        navigationBar.barView?.backgroundColor = toControl.barTintColor
-                        navigationBar.titleTextAttributes = toControl.titleTextAttributes
-                        navigationBar.tintColor = toControl.tintColor
-                        toview.originX(0)
-                        fromView.originX(-fromView.bounds.size.width * 0.25)
-                        self.setupShadowView(view: toview)
-                    }) { (_) in
-                        let cancel = transitionContext.transitionWasCancelled
-                        if cancel == true {
-                            navigationBar.barView?.backgroundColor = fromControl.barTintColor
-                            navigationBar.titleTextAttributes = fromControl.titleTextAttributes
-                            navigationBar.tintColor = fromControl.tintColor
-                        }
-                        transitionContext.completeTransition(!cancel)
-                    }
+    @objc public func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
+        if let toControl = transitionContext.viewController(forKey: .to) , let fromControl = transitionContext.viewController(forKey: .from),let fromView = transitionContext.view(forKey: .from), let toView = transitionContext.view(forKey: .to),let navigationBar = navigation?.navigationBar {
+            var fromViewNewOrigin = -fromView.bounds.size.width * 0.25
+            var toViewNewOrigin:CGFloat = 0
+            var toViewOldOrigin:CGFloat = 0
+            if self.operation == .push{
+                transitionContext.containerView.addSubview(toView)
+                fromViewNewOrigin = -fromView.bounds.size.width * 0.25
+                toViewNewOrigin = 0
+                toViewOldOrigin = toView.frame.size.width
+            }else{
+                transitionContext.containerView.insertSubview(toView, belowSubview: fromView)
+                fromViewNewOrigin = toView.frame.size.width
+                toViewNewOrigin = 0
+                toViewOldOrigin = -fromView.bounds.size.width * 0.25
+            }
+            toView.originX(toViewOldOrigin)
+            UIView.animate(withDuration: self.transitionDuration(using: transitionContext), delay: 0, options: [.curveEaseInOut], animations: {
+                navigationBar.barTintColor = toControl.barTintColor
+                navigationBar.titleTextAttributes = toControl.titleTextAttributes
+                navigationBar.tintColor = toControl.tintColor
+                toView.originX(toViewNewOrigin)
+                fromView.originX(fromViewNewOrigin)
+                self.setupShadowView(view: toView)
+            }) { (_) in
+                let cancel = transitionContext.transitionWasCancelled
+                if cancel == true {
+                    navigationBar.barTintColor = fromControl.barTintColor
+                    navigationBar.titleTextAttributes = fromControl.titleTextAttributes
+                    navigationBar.tintColor = fromControl.tintColor
                 }
+                transitionContext.completeTransition(!cancel)
             }
             
-        }else if operation == .pop{
-            print("pop")
-            if let toview = transitionContext.view(forKey: UITransitionContextViewKey.to),let fromView = transitionContext.view(forKey: .from),let toControl = transitionContext.viewController(forKey: .to) ,let fromControl = transitionContext.viewController(forKey: .from){
-                if let navigationBar = toControl.navigationController?.navigationBar{
-                    transitionContext.containerView.insertSubview(toview, belowSubview: fromView)
-                    
-                    toview.originX(-fromView.bounds.size.width * 0.25)
-                    UIView.animate(withDuration: self.transitionDuration(using: transitionContext), delay: 0, options: [.curveEaseIn], animations: {
-                        navigationBar.barView?.backgroundColor = toControl.barTintColor
-                        navigationBar.titleTextAttributes = toControl.titleTextAttributes
-                        navigationBar.tintColor = toControl.tintColor
-                        fromView.originX(toview.frame.size.width)
-                        toview.originX(0)
-                        self.setupShadowView(view: fromView)
-                    }) { (_) in
-                        let cancel = transitionContext.transitionWasCancelled
-                        if cancel == true {
-                            navigationBar.barView?.backgroundColor = fromControl.barTintColor
-                            navigationBar.titleTextAttributes = fromControl.titleTextAttributes
-                            navigationBar.tintColor = fromControl.tintColor
-                        }
-                        transitionContext.completeTransition(!cancel)
-                        
-                    }
-                }
-            }
         }else{
-            print("其他")
+            transitionContext.completeTransition(false)
         }
     }
     
-   @objc func setupShadowView(view:UIView) {
-        view.layer.shadowOpacity = 0.3
+    @objc func setupShadowView(view:UIView) {
+        view.layer.shadowOpacity = 0.1
         view.layer.shadowOffset = CGSize.init(width: -4, height: 6)
         view.layer.shadowColor = UIColor.darkGray.cgColor
         view.layer.shadowRadius = 2
